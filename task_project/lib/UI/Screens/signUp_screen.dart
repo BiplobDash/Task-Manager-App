@@ -26,6 +26,8 @@ class _SignUpState extends State<SignUp> {
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
+  bool _inProgress = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,34 +102,44 @@ class _SignUpState extends State<SignUp> {
                   SizedBox(
                     height: 8,
                   ),
-                  AppElevatedButton(
-                      child: Icon(Icons.arrow_circle_right_outlined),
-                      onTap: () async {
-                        if (_formKey.currentState!.validate()) {
-                          final result = await NetworkUtils().postMethod(
-                              Urls.registrationUrl,
-                              body: {
-                                'email': emailController.text.trim(),
-                                'mobile': mobileController.text.trim(),
-                                'password': passwordController.text.trim(),
-                                'firstName': firstNameController.text.trim(),
-                                'lastName': lastNameController.text.trim(),
-                              });
-                          if (result != null &&
-                              result['status'] == ['success']) {
-                            firstNameController.clear();
-                            lastNameController.clear();
-                            passwordController.clear();
-                            emailController.clear();
-                            mobileController.clear();
-                            showSnackBarMessage(
-                                context, 'Resgistration successful!');
-                          } else {
-                            showSnackBarMessage(context,
-                                'Resgistration failed try again!', true);
+                  if (_inProgress)
+                    Center(
+                      child: CircularProgressIndicator(color: Colors.green),
+                    )
+                  else
+                    AppElevatedButton(
+                        child: Icon(Icons.arrow_circle_right_outlined),
+                        onTap: () async {
+                          if (_formKey.currentState!.validate()) {
+                            setState(() {
+                              _inProgress = true;
+                            });
+                            final result = await NetworkUtils()
+                                .postMethod(Urls.registrationUrl, body: {
+                              'email': emailController.text.trim(),
+                              'mobile': mobileController.text.trim(),
+                              'password': passwordController.text.trim(),
+                              'firstName': firstNameController.text.trim(),
+                              'lastName': lastNameController.text.trim(),
+                            });
+                            setState(() {
+                              _inProgress = false;
+                            });
+                            if (result != null &&
+                                result['status'] == ['success']) {
+                              firstNameController.clear();
+                              lastNameController.clear();
+                              passwordController.clear();
+                              emailController.clear();
+                              mobileController.clear();
+                              showSnackBarMessage(
+                                  context, 'Resgistration successful!');
+                            } else {
+                              showSnackBarMessage(context,
+                                  'Resgistration failed try again!', true);
+                            }
                           }
-                        }
-                      }),
+                        }),
                   SizedBox(
                     height: 16,
                   ),

@@ -5,6 +5,7 @@ import 'package:task_project/UI/Screens/verify_with_email_screen.dart';
 import 'package:task_project/UI/utils/snickbar_message.dart';
 import 'package:task_project/UI/widgets/appTextButton.dart';
 import 'package:task_project/UI/widgets/screenBackground.dart';
+import 'package:task_project/data/auth_utils.dart';
 import 'package:task_project/data/network_utils.dart';
 import 'package:task_project/data/urls.dart';
 
@@ -23,6 +24,32 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  bool _inProgress = false;
+
+  Future<void> login() async {
+    setState(() {
+      _inProgress = true;
+    });
+    final result = await NetworkUtils().postMethod(Urls.loginUrl, body: {
+      'email': _emailController.text.trim(),
+      'password': _passController.text,
+    }, onUnAuthorize: () {
+      showSnackBarMessage(context, 'Username or Password Incorrect', true);
+    });
+    setState(() {
+      _inProgress = false;
+    });
+    if (result != null && result['status'] == 'success') {
+      await AuthUtils.saveUserData(
+          result['data']['firstName'], result['data']['lastName'], result['token'], result['data']['photo'], result['data']['mobile']);
+
+      Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => MainBottomNavBar()),
+          (route) => false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,7 +63,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    SizedBox(height: 90,),
+                    SizedBox(
+                      height: 90,
+                    ),
                     Text(
                       'Get Started with',
                       style: screenTitleTextStyle,
@@ -62,7 +91,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       hintText: 'Password',
                       controller: _passController,
                       validator: (value) {
-                        if ((value?.isEmpty ?? true) && ((value!.length) <= 6)) {
+                        if ((value?.isEmpty ?? true) &&
+                            ((value!.length) <= 6)) {
                           return 'Enter your password';
                         }
                         return null;
@@ -71,28 +101,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(
                       height: 16,
                     ),
-                    AppElevatedButton(
-                      child: Icon(Icons.arrow_circle_right),
-                      onTap: () async {
-                        if (_formKey.currentState!.validate()) {
-                          final result =
-                              await NetworkUtils().postMethod(Urls.loginUrl, body: {
-                            'email': _emailController.text.trim(),
-                            'password': _passController.text,
-                          }, onUnAuthorize: () {
-                            showSnackBarMessage(
-                                context, 'Username or Password Incorrect', true);
-                          });
-                          if (result != null && result['status'] == 'success') {
-                            Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (_) => MainBottomNavBar()),
-                                (route) => false);
+                    if (_inProgress)
+                      Center(
+                        child: CircularProgressIndicator(color: Colors.green),
+                      )
+                    else
+                      AppElevatedButton(
+                        child: Icon(Icons.arrow_circle_right),
+                        onTap: () async {
+                          if (_formKey.currentState!.validate()) {
+                            login();
                           }
-                        }
-                      },
-                    ),
+                        },
+                      ),
                     SizedBox(
                       height: 16,
                     ),
@@ -112,8 +133,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         text: 'Don\'t have an account',
                         buttonText: 'Sign-Up',
                         onTap: () {
-                          Navigator.push(
-                              context, MaterialPageRoute(builder: (_) => SignUp()));
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (_) => SignUp()));
                         }),
                   ],
                 ),
