@@ -41,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
     if (result != null && result['status'] == 'success') {
       await AuthUtils.saveUserData(
-          result['data']['firstName'], result['data']['lastName'], result['token'], result['data']['photo'], result['data']['mobile']);
+          result['data']['firstName'], result['data']['lastName'], result['token'], result['data']['photo'], result['data']['mobile'],result['data']['email']);
 
       Navigator.pushAndRemoveUntil(
           context,

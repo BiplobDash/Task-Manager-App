@@ -16,8 +16,10 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     // TODO: implement initState
+    Future.delayed(Duration(seconds: 2)).then((value) {
+      checkUserAuthState();
+    });
     super.initState();
-    checkUserAuthState();
   }
 
   Future<void> checkUserAuthState() async {
@@ -28,7 +30,6 @@ class _SplashScreenState extends State<SplashScreen> {
           context,
           MaterialPageRoute(builder: (_) => MainBottomNavBar()),
           (route) => false);
-      
     } else {
       Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (_) => LoginScreen()), (route) => false);

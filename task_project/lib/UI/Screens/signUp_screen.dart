@@ -111,22 +111,23 @@ class _SignUpState extends State<SignUp> {
                         child: Icon(Icons.arrow_circle_right_outlined),
                         onTap: () async {
                           if (_formKey.currentState!.validate()) {
+                            _inProgress = true;
                             setState(() {
-                              _inProgress = true;
+                              
                             });
                             final result = await NetworkUtils()
                                 .postMethod(Urls.registrationUrl, body: {
                               'email': emailController.text.trim(),
                               'mobile': mobileController.text.trim(),
-                              'password': passwordController.text.trim(),
+                              'password': passwordController.text,
                               'firstName': firstNameController.text.trim(),
                               'lastName': lastNameController.text.trim(),
                             });
-                            setState(() {
                               _inProgress = false;
+                            setState(() {
                             });
-                            if (result != null &&
-                                result['status'] == ['success']) {
+                            if ((result != null) &&
+                                (result['status'] == ['success'])) {
                               firstNameController.clear();
                               lastNameController.clear();
                               passwordController.clear();
